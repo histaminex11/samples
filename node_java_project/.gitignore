@@ -1,0 +1,41 @@
+# Java/Maven
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.idea/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Node.js/npm
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.npm
+frontend/.cache
+# Note: package-lock.json should be committed
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+/tmp/
+
+# Test files (optional - uncomment if you don't want to commit test files)
+# test-frontend.sh
+# test-browser.html
+
