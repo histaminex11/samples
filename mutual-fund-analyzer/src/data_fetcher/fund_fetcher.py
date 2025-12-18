@@ -15,25 +15,18 @@ from .mf_api_fetcher import MFAPIFetcher
 class FundFetcher:
     """Fetches mutual fund data from various sources."""
     
-    def __init__(self, config_path: str = "config/config.yaml", use_api: bool = True):
+    def __init__(self, config_path: str = "config/config.yaml"):
         """
         Initialize the fund fetcher with configuration.
+        Uses MF API (api.mfapi.in) for data fetching.
         
         Args:
             config_path: Path to config file
-            use_api: If True, use API; if False, use scrapers (legacy)
         """
         self.config = self._load_config(config_path)
         self.categories = self.config.get('categories', [])
         self.top_funds_count = self.config.get('analysis', {}).get('top_funds_per_category', 100)
-        self.use_api = use_api
-        
-        if use_api:
-            self.api_fetcher = MFAPIFetcher(rate_limit=0.5)
-        else:
-            from .scraper import WebScraper
-            self.scraper = WebScraper(rate_limit=2.0)
-            self.data_sources = self.config.get('data_sources', [])
+        self.api_fetcher = MFAPIFetcher(rate_limit=0.5)
         
     def _load_config(self, config_path: str) -> Dict:
         """Load configuration from YAML file."""
@@ -46,47 +39,41 @@ class FundFetcher:
     
     def fetch_funds_by_category(self, category: str, all_funds_df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
-        Fetch top mutual funds for a specific category.
+        Fetch top mutual funds for a specific category using MF API.
         
         Args:
             category: Fund category (smallcap, midcap, largecap, etc.)
-            all_funds_df: Optional pre-fetched all funds DataFrame (for API mode)
+            all_funds_df: Optional pre-fetched all funds DataFrame
             
         Returns:
             DataFrame with fund information
         """
-        if self.use_api:
-            # Use API-based fetching
-            if all_funds_df is None:
-                all_funds_df = self.api_fetcher.fetch_all_funds()
-            
-            if all_funds_df.empty:
-                return pd.DataFrame()
-            
-            # Fetch funds for this category with performance data
-            funds_df = self.api_fetcher.fetch_funds_by_category(
-                category, 
-                all_funds_df, 
-                max_funds=self.top_funds_count
-            )
-            
-            # Sort by returns
-            if not funds_df.empty:
-                if 'returns_5y' in funds_df.columns:
-                    funds_df = funds_df.sort_values('returns_5y', ascending=False, na_position='last')
-                elif 'returns_3y' in funds_df.columns:
-                    funds_df = funds_df.sort_values('returns_3y', ascending=False, na_position='last')
-                elif 'returns_1y' in funds_df.columns:
-                    funds_df = funds_df.sort_values('returns_1y', ascending=False, na_position='last')
-                
-                funds_df = funds_df.head(self.top_funds_count)
-            
-            return funds_df
-        else:
-            # Legacy scraper-based fetching (kept for backward compatibility)
-            print(f"\nFetching {category} funds from multiple sources...")
-            # ... (keep existing scraper code if needed)
+        # Use API-based fetching
+        if all_funds_df is None:
+            all_funds_df = self.api_fetcher.fetch_all_funds()
+        
+        if all_funds_df.empty:
             return pd.DataFrame()
+        
+        # Fetch funds for this category with performance data
+        funds_df = self.api_fetcher.fetch_funds_by_category(
+            category, 
+            all_funds_df, 
+            max_funds=self.top_funds_count
+        )
+        
+        # Sort by returns
+        if not funds_df.empty:
+            if 'returns_5y' in funds_df.columns:
+                funds_df = funds_df.sort_values('returns_5y', ascending=False, na_position='last')
+            elif 'returns_3y' in funds_df.columns:
+                funds_df = funds_df.sort_values('returns_3y', ascending=False, na_position='last')
+            elif 'returns_1y' in funds_df.columns:
+                funds_df = funds_df.sort_values('returns_1y', ascending=False, na_position='last')
+            
+            funds_df = funds_df.head(self.top_funds_count)
+        
+        return funds_df
     
     def fetch_all_categories(self) -> Dict[str, pd.DataFrame]:
         """
@@ -97,58 +84,46 @@ class FundFetcher:
         """
         all_funds = {}
         
-        if self.use_api:
-            # Fetch all funds once, then process by category
-            print("Fetching all mutual funds from API...")
-            all_funds_df = self.api_fetcher.fetch_all_funds()
-            
-            if all_funds_df.empty:
-                print("✗ Failed to fetch funds from API")
-                return {cat: pd.DataFrame() for cat in self.categories}
-            
-            # Categorize funds first
-            categorized_funds = self.api_fetcher.categorize_funds(all_funds_df)
-            
-            # Get unique categories found in the data
-            available_categories = list(categorized_funds.keys())
-            print(f"\nFound categories in data: {', '.join(available_categories)}")
-            
-            # Process each requested category
-            for category in self.categories:
-                try:
-                    if category in categorized_funds and not categorized_funds[category].empty:
-                        # Get funds for this category and enrich with performance
-                        category_funds = categorized_funds[category].head(self.top_funds_count)
-                        funds_df = self.api_fetcher.enrich_funds_with_performance(
-                            category_funds, 
-                            max_funds=min(50, self.top_funds_count)  # Limit for speed
-                        )
-                        
-                        # Sort by returns
-                        if 'returns_5y' in funds_df.columns:
-                            funds_df = funds_df.sort_values('returns_5y', ascending=False, na_position='last')
-                        elif 'returns_3y' in funds_df.columns:
-                            funds_df = funds_df.sort_values('returns_3y', ascending=False, na_position='last')
-                        
-                        all_funds[category] = funds_df
-                        print(f"✓ Fetched {len(funds_df)} funds for {category}")
-                    else:
-                        print(f"⚠ No funds found for {category}")
-                        all_funds[category] = pd.DataFrame()
-                except Exception as e:
-                    print(f"✗ Error fetching {category}: {str(e)}")
-                    all_funds[category] = pd.DataFrame()
-        else:
-            # Legacy scraper-based approach
-            for category in self.categories:
-                try:
-                    funds_df = self.fetch_funds_by_category(category)
+        # Fetch all funds once, then process by category
+        print("Fetching all mutual funds from API...")
+        all_funds_df = self.api_fetcher.fetch_all_funds()
+        
+        if all_funds_df.empty:
+            print("✗ Failed to fetch funds from API")
+            return {cat: pd.DataFrame() for cat in self.categories}
+        
+        # Categorize funds first
+        categorized_funds = self.api_fetcher.categorize_funds(all_funds_df)
+        
+        # Get unique categories found in the data
+        available_categories = list(categorized_funds.keys())
+        print(f"\nFound categories in data: {', '.join(available_categories)}")
+        
+        # Process each requested category
+        for category in self.categories:
+            try:
+                if category in categorized_funds and not categorized_funds[category].empty:
+                    # Get funds for this category and enrich with performance
+                    category_funds = categorized_funds[category].head(self.top_funds_count)
+                    funds_df = self.api_fetcher.enrich_funds_with_performance(
+                        category_funds, 
+                        max_funds=min(50, self.top_funds_count)  # Limit for speed
+                    )
+                    
+                    # Sort by returns
+                    if 'returns_5y' in funds_df.columns:
+                        funds_df = funds_df.sort_values('returns_5y', ascending=False, na_position='last')
+                    elif 'returns_3y' in funds_df.columns:
+                        funds_df = funds_df.sort_values('returns_3y', ascending=False, na_position='last')
+                    
                     all_funds[category] = funds_df
                     print(f"✓ Fetched {len(funds_df)} funds for {category}")
-                    time.sleep(1)  # Rate limiting
-                except Exception as e:
-                    print(f"✗ Error fetching {category}: {str(e)}")
+                else:
+                    print(f"⚠ No funds found for {category}")
                     all_funds[category] = pd.DataFrame()
+            except Exception as e:
+                print(f"✗ Error fetching {category}: {str(e)}")
+                all_funds[category] = pd.DataFrame()
         
         return all_funds
     

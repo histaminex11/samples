@@ -11,17 +11,12 @@ categories:
   - debt
   - sectoral
 
-# Data Sources
-data_sources:
-  - name: "AMFI"
-    url: "https://www.amfiindia.com"
-    enabled: true
-  - name: "Moneycontrol"
-    url: "https://www.moneycontrol.com"
-    enabled: true
-  - name: "Value Research"
-    url: "https://www.valueresearchonline.com"
-    enabled: true
+# Data Source
+# Using MF API (api.mfapi.in) for all data fetching
+data_source:
+  name: "MF API"
+  base_url: "https://api.mfapi.in/mf"
+  enabled: true
 
 # Analysis Parameters
 analysis:

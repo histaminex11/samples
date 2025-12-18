@@ -1,12 +1,10 @@
 """
 Data Fetcher Module
-Handles fetching mutual fund data from various internet sources.
+Handles fetching mutual fund data from MF API (api.mfapi.in).
 """
 
 from .fund_fetcher import FundFetcher
-from .scraper import WebScraper
-from .holdings_fetcher import HoldingsFetcher
-from .api_fetcher import APIFetcher
+from .mf_api_fetcher import MFAPIFetcher
 
-__all__ = ['FundFetcher', 'WebScraper', 'HoldingsFetcher', 'APIFetcher']
+__all__ = ['FundFetcher', 'MFAPIFetcher']
 
