@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 """
-Display top 3 recommendations for each category.
+Display top N recommendations for each category (configurable via config.yaml).
 """
 
 import pandas as pd
 import sys
 import os
+import yaml
+from pathlib import Path
+
+def load_config():
+    """Load configuration to get number of recommendations."""
+    config_path = "config/config.yaml"
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            return config.get('analysis', {}).get('top_recommendations_per_category', 5)
+    except:
+        return 5  # Default
 
 def show_recommendations():
     """Display top recommendations."""
@@ -22,15 +34,18 @@ def show_recommendations():
         print("No recommendations found.")
         return
     
+    # Get number of recommendations from config
+    top_n = load_config()
+    
     print("=" * 100)
-    print("TOP 3 MUTUAL FUND RECOMMENDATIONS BY CATEGORY")
+    print(f"TOP {top_n} MUTUAL FUND RECOMMENDATIONS BY CATEGORY")
     print("=" * 100)
     print()
     
     categories = df['category'].unique()
     
     for category in sorted(categories):
-        cat_df = df[df['category'] == category].head(3)
+        cat_df = df[df['category'] == category].head(top_n)
         
         if cat_df.empty:
             continue

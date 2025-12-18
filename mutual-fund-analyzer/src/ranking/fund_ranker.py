@@ -1,6 +1,6 @@
 """
 Fund Ranker
-Ranks mutual funds and selects top 3 from each category.
+Ranks mutual funds and selects top N from each category (configurable).
 Supports two ranking methods:
 1. Pure returns-based ranking
 2. Comprehensive ranking (returns + risk metrics)

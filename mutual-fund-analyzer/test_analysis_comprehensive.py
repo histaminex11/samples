@@ -157,7 +157,7 @@ def test_returns_based_ranking():
         # Fund B should rank highest (highest returns) - check that it's in top 3
         top_fund = ranked.iloc[0]
         top_fund_names = ranked['fund_name'].tolist()
-        assert 'Fund B' in top_fund_names[:3], f"Fund B should be in top 3 based on returns. Got: {top_fund_names}"
+        assert 'Fund B' in top_fund_names[:3], f"Fund B should be in top 3 based on returns. Got: {top_fund_names[:3]}"
         
         print(f"✓ SUCCESS: Returns-based ranking works")
         print(f"  Top fund: {top_fund['fund_name']} (Score: {top_fund['score']:.2f})")
