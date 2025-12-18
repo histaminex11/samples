@@ -1,0 +1,68 @@
+# Mutual Fund Analyzer Configuration
+
+# Fund Categories to analyze
+categories:
+  - smallcap
+  - midcap
+  - largecap
+  - index_funds
+  - elss
+  - hybrid
+  - debt
+  - sectoral
+
+# Data Sources
+data_sources:
+  - name: "AMFI"
+    url: "https://www.amfiindia.com"
+    enabled: true
+  - name: "Moneycontrol"
+    url: "https://www.moneycontrol.com"
+    enabled: true
+  - name: "Value Research"
+    url: "https://www.valueresearchonline.com"
+    enabled: true
+
+# Analysis Parameters
+analysis:
+  # Number of top funds to fetch per category
+  top_funds_per_category: 100
+  
+  # Performance periods to analyze (in years)
+  performance_periods:
+    - 1
+    - 3
+    - 5
+    - 10
+  
+  # Risk metrics to calculate
+  risk_metrics:
+    - sharpe_ratio
+    - sortino_ratio
+    - beta
+    - standard_deviation
+    - max_drawdown
+  
+  # Holdings analysis
+  top_holdings_count: 10
+
+# Ranking Weights
+ranking_weights:
+  returns_1y: 0.15
+  returns_3y: 0.20
+  returns_5y: 0.25
+  sharpe_ratio: 0.20
+  consistency: 0.10
+  risk_score: 0.10
+
+# Output Settings
+output:
+  format: ["csv", "json", "excel"]
+  output_dir: "data/processed"
+  generate_charts: true
+
+# API Settings (if using APIs)
+api:
+  rate_limit: 10  # requests per second
+  timeout: 30     # seconds
+
