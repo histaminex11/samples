@@ -34,12 +34,6 @@ def test_imports():
     except ImportError:
         print("✗ pandas module not available (install: pip install pandas)")
     
-    try:
-        from bs4 import BeautifulSoup
-        print("✓ beautifulsoup4 module available")
-    except ImportError:
-        print("✗ beautifulsoup4 module not available (install: pip install beautifulsoup4)")
-    
     print("\n" + "=" * 60)
     print("Testing project file structure...")
     print("=" * 60)
@@ -47,10 +41,8 @@ def test_imports():
     # Check if key files exist
     files_to_check = [
         "src/data_fetcher/fund_fetcher.py",
-        "src/data_fetcher/scraper.py",
-        "src/data_fetcher/holdings_fetcher.py",
+        "src/data_fetcher/mf_api_fetcher.py",
         "src/analyzer/performance_analyzer.py",
-        "src/analyzer/holdings_analyzer.py",
         "src/ranking/fund_ranker.py",
         "src/main.py",
         "config/config.yaml",
@@ -72,7 +64,7 @@ def test_imports():
     import ast
     python_files = [
         "src/data_fetcher/fund_fetcher.py",
-        "src/data_fetcher/scraper.py",
+        "src/data_fetcher/mf_api_fetcher.py",
         "src/main.py"
     ]
     
@@ -88,14 +80,39 @@ def test_imports():
             print(f"⚠ {file_path} - Could not check: {e}")
     
     print("\n" + "=" * 60)
+    print("Testing module imports...")
+    print("=" * 60)
+    
+    # Test if project modules can be imported
+    try:
+        from data_fetcher import FundFetcher, MFAPIFetcher
+        print("✓ data_fetcher modules import successfully")
+    except Exception as e:
+        print(f"✗ data_fetcher import failed: {e}")
+    
+    try:
+        from analyzer import PerformanceAnalyzer
+        print("✓ analyzer modules import successfully")
+    except Exception as e:
+        print(f"✗ analyzer import failed: {e}")
+    
+    try:
+        from ranking import FundRanker
+        print("✓ ranking modules import successfully")
+    except Exception as e:
+        print(f"✗ ranking import failed: {e}")
+    
+    print("\n" + "=" * 60)
     print("Test Summary")
     print("=" * 60)
     print("Project structure appears to be correct!")
     print("\nTo install all dependencies, run:")
-    print("  pip install -r requirements.txt")
+    print("  ./setup.sh")
+    print("  # or")
+    print("  source vmfanalyzer/bin/activate && pip install -r requirements.txt")
     print("\nTo test data fetching (after installing dependencies):")
+    print("  source vmfanalyzer/bin/activate")
     print("  python src/main.py --fetch")
 
 if __name__ == "__main__":
     test_imports()
-
