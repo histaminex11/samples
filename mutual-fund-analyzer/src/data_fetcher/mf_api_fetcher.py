@@ -139,8 +139,6 @@ class MFAPIFetcher:
             else:
                 # Return empty DataFrame if no Direct Plan funds found
                 categorized[category] = pd.DataFrame()
-            else:
-                categorized[category] = category_funds.head(100)  # Fallback
             
             print(f"  ✓ {category}: {len(categorized[category])} funds")
         
