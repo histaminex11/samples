@@ -25,7 +25,7 @@ class FundFetcher:
         self.config = self._load_config(config_path)
         self.categories = self.config.get('categories', [])
         self.top_funds_count = self.config.get('analysis', {}).get('top_funds_per_category', 100)
-        self.api_fetcher = MFAPIFetcher(rate_limit=0.5)
+        self.api_fetcher = MFAPIFetcher(rate_limit=0.5, config=self.config)
         
     def _load_config(self, config_path: str) -> Dict:
         """Load configuration from YAML file."""

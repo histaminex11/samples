@@ -33,7 +33,29 @@ analysis:
     - 5
     - 10
   
-  # Risk metrics to calculate
+  # Analyzer Selection Flags
+  # Enable/disable specific analyzers using binary flags
+  analyzers:
+    # Core Performance Analysis (returns and risk metrics)
+    # Calculates: returns (1Y, 3Y, 5Y, 10Y), Sharpe ratio, std dev, max drawdown, risk score
+    performance_analyzer: true
+    
+    # Consistency Analysis
+    # Calculates: consistency_score, rolling_consistency, coefficient_of_variation
+    # Uses existing NAV data - no additional API calls
+    consistency_analyzer: true
+    
+    # Benchmark Comparison Analysis
+    # Calculates: alpha, tracking_error, benchmark_name, benchmark_outperformance
+    # Uses existing NAV data - benchmark data can be added later
+    benchmark_analyzer: true
+    
+    # Holdings Analysis (not available via MF API)
+    # Calculates: top 10 holdings, sector allocation, concentration risk
+    # Requires: Holdings data source (currently disabled - not available via MF API)
+    holdings_analyzer: false
+  
+  # Risk metrics to calculate (when performance_analyzer is enabled)
   risk_metrics:
     - sharpe_ratio
     - sortino_ratio
@@ -41,7 +63,7 @@ analysis:
     - standard_deviation
     - max_drawdown
   
-  # Holdings analysis
+  # Holdings analysis (when holdings_analyzer is enabled)
   top_holdings_count: 10
 
 # Ranking Weights

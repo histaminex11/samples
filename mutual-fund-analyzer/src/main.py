@@ -38,14 +38,19 @@ def analyze_performance(funds_data):
     print("STEP 2: Analyzing Fund Performance")
     print("=" * 60)
     
-    analyzer = PerformanceAnalyzer()
-    # Performance metrics are already calculated during data fetching
-    # Additional analysis can be added here if needed
+    # Check which analyzers are enabled
+    analyzer_flags = config.get('analysis', {}).get('analyzers', {})
+    
     print("✓ Performance analysis completed")
-    print("  - Returns calculated (1Y, 3Y, 5Y, 10Y)")
-    print("  - Risk metrics calculated (Sharpe ratio, Std Dev, Max Drawdown, Risk Score)")
-    print("  - Consistency metrics calculated (Consistency Score, Rolling Consistency)")
-    print("  - Benchmark metrics calculated (Alpha, Benchmark Name, Outperformance)")
+    if analyzer_flags.get('performance_analyzer', True):
+        print("  - Returns calculated (1Y, 3Y, 5Y, 10Y)")
+        print("  - Risk metrics calculated (Sharpe ratio, Std Dev, Max Drawdown, Risk Score)")
+    if analyzer_flags.get('consistency_analyzer', True):
+        print("  - Consistency metrics calculated (Consistency Score, Rolling Consistency)")
+    if analyzer_flags.get('benchmark_analyzer', True):
+        print("  - Benchmark metrics calculated (Alpha, Benchmark Name, Outperformance)")
+    if analyzer_flags.get('holdings_analyzer', False):
+        print("  - Holdings analysis (not available via MF API)")
     
     return funds_data
 

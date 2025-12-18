@@ -30,14 +30,17 @@ class MFAPIFetcher:
                      'consumption', 'energy', 'healthcare', 'financial']
     }
     
-    def __init__(self, rate_limit: float = 0.5):
+    def __init__(self, rate_limit: float = 0.5, config: Dict = None):
         """
         Initialize the API fetcher.
         
         Args:
             rate_limit: Minimum seconds between API requests
+            config: Optional configuration dictionary for analyzer flags
         """
         self.rate_limit = rate_limit
+        self.config = config or {}
+        self.analyzer_flags = self.config.get('analysis', {}).get('analyzers', {})
         self.last_request_time = 0
         self.session = requests.Session()
         self.session.headers.update({
@@ -296,7 +299,8 @@ class MFAPIFetcher:
             'risk_score': risk_score
         }
     
-    def enrich_funds_with_performance(self, funds_df: pd.DataFrame, max_funds: int = 100) -> pd.DataFrame:
+    def enrich_funds_with_performance(self, funds_df: pd.DataFrame, max_funds: int = 100, 
+                                      config: Dict = None) -> pd.DataFrame:
         """
         Enrich funds DataFrame with performance data.
         
@@ -321,15 +325,19 @@ class MFAPIFetcher:
             # Fetch historical data
             nav_history = self.fetch_fund_history(scheme_code)
             
-            # Calculate returns
-            returns = self.calculate_returns(nav_history)
+            # Performance Analyzer (returns and risk metrics) - always enabled by default
+            returns = {}
+            risk_metrics = {}
+            if self.analyzer_flags.get('performance_analyzer', True):
+                returns = self.calculate_returns(nav_history)
+                risk_metrics = self.calculate_risk_metrics(nav_history)
+            else:
+                returns = {'returns_1y': 0.0, 'returns_3y': 0.0, 'returns_5y': 0.0, 'returns_10y': 0.0}
+                risk_metrics = {'sharpe_ratio': 0.0, 'standard_deviation': 0.0, 'max_drawdown': 0.0, 'risk_score': 0.0}
             
-            # Calculate risk metrics
-            risk_metrics = self.calculate_risk_metrics(nav_history)
-            
-            # Calculate consistency metrics (using existing NAV data)
+            # Consistency Analyzer (optional - controlled by config)
             consistency_metrics = {}
-            if nav_history is not None and not nav_history.empty and len(nav_history) > 0:
+            if self.analyzer_flags.get('consistency_analyzer', True) and nav_history is not None and not nav_history.empty and len(nav_history) > 0:
                 try:
                     import sys
                     from pathlib import Path
@@ -343,10 +351,12 @@ class MFAPIFetcher:
                 except Exception as e:
                     # If analyzer fails, use defaults
                     consistency_metrics = {'consistency_score': 0.0, 'rolling_consistency': 0.0, 'coefficient_of_variation': 100.0}
+            else:
+                consistency_metrics = {'consistency_score': 0.0, 'rolling_consistency': 0.0, 'coefficient_of_variation': 100.0}
             
-            # Calculate benchmark metrics (using existing NAV data)
+            # Benchmark Analyzer (optional - controlled by config)
             benchmark_metrics = {}
-            if nav_history is not None and not nav_history.empty and len(nav_history) > 0:
+            if self.analyzer_flags.get('benchmark_analyzer', True) and nav_history is not None and not nav_history.empty and len(nav_history) > 0:
                 try:
                     from analyzer import BenchmarkAnalyzer
                     benchmark_analyzer = BenchmarkAnalyzer()
@@ -356,6 +366,8 @@ class MFAPIFetcher:
                 except Exception as e:
                     # If analyzer fails, use defaults
                     benchmark_metrics = {'alpha': 0.0, 'tracking_error': 0.0, 'benchmark_outperformance': 0.0, 'benchmark_name': 'N/A'}
+            else:
+                benchmark_metrics = {'alpha': 0.0, 'tracking_error': 0.0, 'benchmark_outperformance': 0.0, 'benchmark_name': 'N/A'}
             
             # Get current NAV
             current_nav = 0.0
@@ -429,7 +441,7 @@ class MFAPIFetcher:
             # If no direct plan funds found, return empty (don't fall back to other options)
             funds_to_process = category_funds.head(0)  # Empty DataFrame
         
-        # Enrich with performance data
+        # Enrich with performance data (config passed via __init__)
         enriched_funds = self.enrich_funds_with_performance(funds_to_process, max_funds=max_funds)
         
         # Add category
