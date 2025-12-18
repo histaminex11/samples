@@ -123,21 +123,22 @@ class MFAPIFetcher:
             category_funds = funds_df[mask].copy()
             category_funds['category'] = category
             
-            # Filter to only Growth plans (remove IDCW, Dividend, etc.)
-            growth_funds = category_funds[
-                category_funds['schemeName'].str.contains('growth', case=False, na=False) |
-                category_funds['schemeName'].str.contains('direct', case=False, na=False)
+            # Filter to only Direct Plan funds (strict filtering)
+            # Must contain "direct" and must NOT contain IDCW, Bonus, Periodic, Dividend
+            direct_plan_funds = category_funds[
+                category_funds['schemeName'].str.contains('direct', case=False, na=False) &
+                ~category_funds['schemeName'].str.contains('idcw', case=False, na=False) &
+                ~category_funds['schemeName'].str.contains('bonus', case=False, na=False) &
+                ~category_funds['schemeName'].str.contains('periodic', case=False, na=False) &
+                ~category_funds['schemeName'].str.contains('dividend', case=False, na=False)
             ]
             
-            # Prefer Direct plans
-            direct_funds = growth_funds[
-                growth_funds['schemeName'].str.contains('direct', case=False, na=False)
-            ]
-            
-            if len(direct_funds) > 0:
-                categorized[category] = direct_funds
-            elif len(growth_funds) > 0:
-                categorized[category] = growth_funds
+            # Only include Direct Plan funds (no fallback to other options)
+            if len(direct_plan_funds) > 0:
+                categorized[category] = direct_plan_funds
+            else:
+                # Return empty DataFrame if no Direct Plan funds found
+                categorized[category] = pd.DataFrame()
             else:
                 categorized[category] = category_funds.head(100)  # Fallback
             
@@ -376,22 +377,21 @@ class MFAPIFetcher:
             )
         ].copy()
         
-        # Filter to Growth plans, prefer Direct
-        growth_funds = category_funds[
-            category_funds['schemeName'].str.contains('growth', case=False, na=False) |
-            category_funds['schemeName'].str.contains('direct', case=False, na=False)
+        # Filter to only Direct Plan funds (strict filtering)
+        # Must contain "direct" and must NOT contain IDCW, Bonus, Periodic, Dividend
+        direct_plan_funds = category_funds[
+            category_funds['schemeName'].str.contains('direct', case=False, na=False) &
+            ~category_funds['schemeName'].str.contains('idcw', case=False, na=False) &
+            ~category_funds['schemeName'].str.contains('bonus', case=False, na=False) &
+            ~category_funds['schemeName'].str.contains('periodic', case=False, na=False) &
+            ~category_funds['schemeName'].str.contains('dividend', case=False, na=False)
         ]
         
-        direct_funds = growth_funds[
-            growth_funds['schemeName'].str.contains('direct', case=False, na=False)
-        ]
-        
-        if len(direct_funds) > 0:
-            funds_to_process = direct_funds.head(max_funds)
-        elif len(growth_funds) > 0:
-            funds_to_process = growth_funds.head(max_funds)
+        if len(direct_plan_funds) > 0:
+            funds_to_process = direct_plan_funds.head(max_funds)
         else:
-            funds_to_process = category_funds.head(max_funds)
+            # If no direct plan funds found, return empty (don't fall back to other options)
+            funds_to_process = category_funds.head(0)  # Empty DataFrame
         
         # Enrich with performance data
         enriched_funds = self.enrich_funds_with_performance(funds_to_process, max_funds=max_funds)
