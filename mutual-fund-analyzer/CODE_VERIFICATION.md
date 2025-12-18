@@ -8,8 +8,17 @@ This document explains how we verify that the mutual fund analyzer code is worki
 
 ### 1. **Automated Test Suite** ✅
 
-We have a comprehensive test suite (`test_code_verification.py`) that verifies:
+We have comprehensive test suites that verify different aspects:
 
+**Test Files:**
+- `test_code_verification.py` - Core functionality (6 tests)
+- `test_structure.py` - Project structure and imports
+- `test_new_analyzers.py` - Consistency and Benchmark analyzers (4 tests)
+- `test_analysis_comprehensive.py` - Comprehensive analysis (6 tests)
+- `test_analyzer_flags.py` - Analyzer configuration flags (2 tests)
+- `test_caching.py` - Caching mechanism (8 tests)
+
+**test_code_verification.py** verifies:
 - **API Connection**: Tests that we can successfully connect to `api.mfapi.in` and fetch funds
 - **Fund Categorization**: Verifies that funds are correctly categorized (smallcap, midcap, etc.)
 - **Performance Calculation**: Tests that historical NAV data is fetched and returns are calculated
@@ -17,13 +26,18 @@ We have a comprehensive test suite (`test_code_verification.py`) that verifies:
 - **Fund Ranker**: Verifies that ranking and recommendation generation works
 - **Output Files**: Checks that output files are generated correctly
 
-**Run tests:**
+**Run all tests:**
 ```bash
 source vmfanalyzer/bin/activate
 python test_code_verification.py
+python test_structure.py
+python test_new_analyzers.py
+python test_analysis_comprehensive.py
+python test_analyzer_flags.py
+python test_caching.py
 ```
 
-**Current Status**: ✅ All 6 tests pass
+**Current Status**: ✅ All test suites passing
 
 ### 2. **Real Data Verification** ✅
 
@@ -37,14 +51,14 @@ We verify the code works with real data:
   - Index Funds: 691 funds
   - ELSS: 92 funds
   - Hybrid: 716 funds
-  - Debt: 2,102 funds
+  - Debt: 2,102 funds (excluded from processing by default)
   - Sectoral: 257 funds
 
 ### 3. **Output Validation** ✅
 
 We verify that outputs are generated correctly:
 
-- **Recommendations File**: `data/processed/recommendations.csv` contains 24 recommendations (top 3 per category × 8 categories)
+- **Recommendations File**: `data/processed/recommendations.csv` contains 35 recommendations (top 5 per category × 7 categories, debt excluded)
 - **File Format**: CSV and Excel files are generated with correct structure
 - **Data Quality**: Recommendations include:
   - Fund names
@@ -133,7 +147,15 @@ If you want to manually verify the code:
 
 To ensure code continues working:
 
-1. Run tests before committing: `python test_code_verification.py`
+1. Run all test suites before committing:
+   ```bash
+   python test_code_verification.py
+   python test_structure.py
+   python test_new_analyzers.py
+   python test_analysis_comprehensive.py
+   python test_analyzer_flags.py
+   python test_caching.py
+   ```
 2. Verify outputs after changes: `python src/main.py --all`
 3. Check file structure: `python test_structure.py`
 

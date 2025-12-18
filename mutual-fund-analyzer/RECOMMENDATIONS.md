@@ -1,10 +1,10 @@
-# Top 3 Mutual Fund Recommendations by Category
+# Top 5 Mutual Fund Recommendations by Category
 
 Generated using MF API (api.mfapi.in) with performance analysis.
 
 ## Summary
 
-The analyzer has processed funds from all categories and generated top 3 recommendations based on:
+The analyzer has processed funds from 7 categories (debt excluded) and generated top 5 recommendations based on:
 - Historical returns (1Y, 3Y, 5Y)
 - Risk-adjusted performance
 - Multi-factor scoring

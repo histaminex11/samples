@@ -35,7 +35,7 @@ The project uses the **MF API** exclusively for all data fetching. This is a pub
    - Index Funds: "index", "nifty", "sensex", "etf"
    - ELSS: "elss", "tax saving", "tax-saving"
    - Hybrid: "hybrid", "balanced", "aggressive"
-   - Debt: "debt", "income", "gilt", "liquid"
+   - Debt: "debt", "income", "gilt", "liquid" (excluded from processing by default)
    - Sectoral: "sectoral", "sector", "infrastructure", "technology", etc.
 
 3. **Performance Calculation**: For top funds in each category:

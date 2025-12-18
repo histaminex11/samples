@@ -47,7 +47,8 @@ python src/main.py --fetch
 
 This will:
 - Fetch all mutual funds from MF API
-- Automatically categorize funds (smallcap, midcap, largecap, index_funds, elss, hybrid, debt, sectoral)
+- Automatically categorize funds (smallcap, midcap, largecap, index_funds, elss, hybrid, sectoral)
+- Note: Debt funds excluded by default (can be enabled in config.yaml)
 - Calculate performance metrics (1Y, 3Y, 5Y, 10Y returns)
 - Save raw data to `data/raw/` directory
 - Create CSV files for each category
@@ -66,7 +67,7 @@ This requires fetched data first. It will:
 
 ### 3. Generate Recommendations
 
-Get top 3 funds from each category:
+Get top 5 funds from each category (configurable):
 
 ```bash
 python src/main.py --recommend
@@ -74,7 +75,7 @@ python src/main.py --recommend
 
 This will:
 - Rank funds based on multiple factors (returns, consistency, risk)
-- Select top 3 from each category
+- Select top 5 from each category (configurable in config.yaml)
 - Generate recommendations report
 - Save to `data/processed/recommendations.csv` and `.xlsx`
 
@@ -160,7 +161,7 @@ Categorizing funds...
   ✓ index_funds: 691 funds
   ✓ elss: 92 funds
   ✓ hybrid: 716 funds
-  ✓ debt: 2102 funds
+  ✓ debt: 2102 funds (excluded from processing by default)
   ✓ sectoral: 257 funds
 
 ✓ Fetched funds for 8 categories
@@ -168,8 +169,8 @@ Categorizing funds...
 ============================================================
 STEP 4: Generating Recommendations
 ============================================================
-✓ Selected top 3 funds for smallcap
-✓ Selected top 3 funds for midcap
+✓ Selected top 5 funds for smallcap
+✓ Selected top 5 funds for midcap
 ...
 
 ✓ Generated recommendations for 24 funds

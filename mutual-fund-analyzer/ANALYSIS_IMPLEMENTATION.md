@@ -23,8 +23,8 @@ The mutual fund analyzer now implements comprehensive analysis with all risk met
 **Status**: Fully implemented and calculated from NAV history
 
 ### 3. Fund Categorization ✅
-- Automatic categorization into 8 categories
-- Categories: smallcap, midcap, largecap, index_funds, elss, hybrid, debt, sectoral
+- Automatic categorization into 7 categories (debt excluded by default)
+- Categories: smallcap, midcap, largecap, index_funds, elss, hybrid, sectoral
 
 **Status**: Fully implemented
 
@@ -87,8 +87,10 @@ src/
 
 ## Testing
 
-### Comprehensive Test Suite
-Created `test_analysis_comprehensive.py` with 6 tests:
+### Test Suites
+Multiple test files verify different aspects:
+
+1. **test_analysis_comprehensive.py** - Comprehensive analysis (6 tests):
 
 1. ✅ Risk Metrics Calculation
 2. ✅ Enriched Data Contains All Metrics
@@ -99,10 +101,24 @@ Created `test_analysis_comprehensive.py` with 6 tests:
 
 **Status**: All 6 tests passing
 
+2. **test_new_analyzers.py** - Consistency and Benchmark analyzers (4 tests)
+3. **test_analyzer_flags.py** - Analyzer configuration flags (2 tests)
+4. **test_caching.py** - Caching mechanism (8 tests)
+5. **test_code_verification.py** - Core functionality (6 tests)
+6. **test_structure.py** - Project structure and imports
+
+**Total**: 32 tests across 6 test files
+
 ### Running Tests
 ```bash
 source vmfanalyzer/bin/activate
+# Run all test suites
+python test_code_verification.py
+python test_structure.py
+python test_new_analyzers.py
 python test_analysis_comprehensive.py
+python test_analyzer_flags.py
+python test_caching.py
 ```
 
 ## Output Files
