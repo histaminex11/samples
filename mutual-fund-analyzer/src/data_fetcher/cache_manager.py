@@ -36,7 +36,7 @@ class CacheManager:
     
     def is_fresh(self, timestamp: datetime) -> bool:
         """
-        Check if data is fresh (less than 1 month old).
+        Check if data is fresh (less than or equal to 1 month old).
         
         Args:
             timestamp: Data timestamp
@@ -48,7 +48,7 @@ class CacheManager:
             return False
         
         age = datetime.now() - timestamp
-        return age.days < self.FRESHNESS_DAYS
+        return age.days <= self.FRESHNESS_DAYS  # <= to include exactly 30 days
     
     def get_all_funds_cache_path(self) -> Path:
         """Get path for all funds cache."""
@@ -129,13 +129,20 @@ class CacheManager:
         nav_df.to_csv(cache_path, index=False)
         
         # Save metadata
+        # Convert dates to strings for JSON serialization
+        date_start = None
+        date_end = None
+        if 'date' in nav_df.columns and len(nav_df) > 0:
+            date_start = str(nav_df['date'].min())
+            date_end = str(nav_df['date'].max())
+        
         metadata = {
             'timestamp': datetime.now().isoformat(),
             'scheme_code': scheme_code,
             'rows': len(nav_df),
             'date_range': {
-                'start': nav_df['date'].min() if 'date' in nav_df.columns else None,
-                'end': nav_df['date'].max() if 'date' in nav_df.columns else None
+                'start': date_start,
+                'end': date_end
             }
         }
         metadata_path = self.get_nav_metadata_path(scheme_code)
