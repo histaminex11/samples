@@ -215,5 +215,16 @@ class FundRanker:
                     }
                     all_recommendations.append(recommendation)
         
-        recommendations_df = pd.DataFrame(all_recommendations)
-        return recommendations_df.sort_values(['category', 'rank'])
+        if all_recommendations:
+            recommendations_df = pd.DataFrame(all_recommendations)
+            # Sort by category and rank if columns exist
+            sort_columns = []
+            if 'category' in recommendations_df.columns:
+                sort_columns.append('category')
+            if 'rank' in recommendations_df.columns:
+                sort_columns.append('rank')
+            if sort_columns:
+                return recommendations_df.sort_values(sort_columns)
+            return recommendations_df
+        else:
+            return pd.DataFrame()
