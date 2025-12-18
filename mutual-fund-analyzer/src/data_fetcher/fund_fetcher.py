@@ -1,7 +1,6 @@
 """
 Fund Fetcher
-Fetches top mutual funds from various categories from internet sources.
-Uses mfapi.in API as primary source.
+Fetches mutual funds from various categories using MF API (api.mfapi.in).
 """
 
 import pandas as pd
@@ -13,7 +12,7 @@ from .mf_api_fetcher import MFAPIFetcher
 
 
 class FundFetcher:
-    """Fetches mutual fund data from various sources."""
+    """Fetches mutual fund data from MF API (api.mfapi.in)."""
     
     def __init__(self, config_path: str = "config/config.yaml"):
         """
@@ -131,9 +130,25 @@ class FundFetcher:
         """Save raw fetched data to CSV files."""
         os.makedirs(output_dir, exist_ok=True)
         
+        # Save all funds combined
+        all_funds_list = []
         for category, df in funds_data.items():
             if not df.empty:
-                filepath = os.path.join(output_dir, f"{category}_funds.csv")
+                all_funds_list.append(df)
+        
+        if all_funds_list:
+            all_funds_df = pd.concat(all_funds_list, ignore_index=True)
+            all_funds_path = os.path.join(output_dir, "all_funds.csv")
+            all_funds_df.to_csv(all_funds_path, index=False)
+            print(f"Saved {len(all_funds_df)} total funds to {all_funds_path}")
+        
+        # Save by category
+        category_dir = os.path.join(output_dir, "funds_by_category")
+        os.makedirs(category_dir, exist_ok=True)
+        
+        for category, df in funds_data.items():
+            if not df.empty:
+                filepath = os.path.join(category_dir, f"{category}_funds.csv")
                 df.to_csv(filepath, index=False)
                 print(f"Saved {len(df)} {category} funds to {filepath}")
 
