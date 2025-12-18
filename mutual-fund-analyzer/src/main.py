@@ -44,6 +44,8 @@ def analyze_performance(funds_data):
     print("✓ Performance analysis completed")
     print("  - Returns calculated (1Y, 3Y, 5Y, 10Y)")
     print("  - Risk metrics calculated (Sharpe ratio, Std Dev, Max Drawdown, Risk Score)")
+    print("  - Consistency metrics calculated (Consistency Score, Rolling Consistency)")
+    print("  - Benchmark metrics calculated (Alpha, Benchmark Name, Outperformance)")
     
     return funds_data
 

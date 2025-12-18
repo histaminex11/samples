@@ -327,6 +327,36 @@ class MFAPIFetcher:
             # Calculate risk metrics
             risk_metrics = self.calculate_risk_metrics(nav_history)
             
+            # Calculate consistency metrics (using existing NAV data)
+            consistency_metrics = {}
+            if nav_history is not None and not nav_history.empty and len(nav_history) > 0:
+                try:
+                    import sys
+                    from pathlib import Path
+                    # Add parent directory to path for analyzer imports
+                    parent_dir = str(Path(__file__).parent.parent)
+                    if parent_dir not in sys.path:
+                        sys.path.insert(0, parent_dir)
+                    from analyzer import ConsistencyAnalyzer
+                    consistency_analyzer = ConsistencyAnalyzer()
+                    consistency_metrics = consistency_analyzer.analyze_fund_consistency(nav_history)
+                except Exception as e:
+                    # If analyzer fails, use defaults
+                    consistency_metrics = {'consistency_score': 0.0, 'rolling_consistency': 0.0, 'coefficient_of_variation': 100.0}
+            
+            # Calculate benchmark metrics (using existing NAV data)
+            benchmark_metrics = {}
+            if nav_history is not None and not nav_history.empty and len(nav_history) > 0:
+                try:
+                    from analyzer import BenchmarkAnalyzer
+                    benchmark_analyzer = BenchmarkAnalyzer()
+                    benchmark_metrics = benchmark_analyzer.analyze_fund_benchmark(
+                        nav_history, scheme_name, fund.get('category', 'other')
+                    )
+                except Exception as e:
+                    # If analyzer fails, use defaults
+                    benchmark_metrics = {'alpha': 0.0, 'tracking_error': 0.0, 'benchmark_outperformance': 0.0, 'benchmark_name': 'N/A'}
+            
             # Get current NAV
             current_nav = 0.0
             if nav_history is not None and len(nav_history) > 0:
@@ -346,6 +376,14 @@ class MFAPIFetcher:
                 'standard_deviation': risk_metrics.get('standard_deviation', 0.0),
                 'max_drawdown': risk_metrics.get('max_drawdown', 0.0),
                 'risk_score': risk_metrics.get('risk_score', 0.0),
+                # Consistency metrics (new)
+                'consistency_score': consistency_metrics.get('consistency_score', 0.0),
+                'rolling_consistency': consistency_metrics.get('rolling_consistency', 0.0),
+                # Benchmark metrics (new)
+                'alpha': benchmark_metrics.get('alpha', 0.0),
+                'tracking_error': benchmark_metrics.get('tracking_error', 0.0),
+                'benchmark_name': benchmark_metrics.get('benchmark_name', 'N/A'),
+                'benchmark_outperformance': benchmark_metrics.get('benchmark_outperformance', 0.0),
                 'source': 'mfapi',
                 'isin_growth': fund.get('isinGrowth', ''),
             }

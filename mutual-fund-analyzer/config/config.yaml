@@ -49,9 +49,10 @@ ranking_weights:
   returns_1y: 0.15
   returns_3y: 0.20
   returns_5y: 0.25
-  sharpe_ratio: 0.20
+  sharpe_ratio: 0.15
   consistency: 0.10
   risk_score: 0.10
+  alpha: 0.05  # Benchmark outperformance
 
 # Output Settings
 output:

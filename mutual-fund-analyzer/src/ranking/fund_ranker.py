@@ -94,11 +94,22 @@ class FundRanker:
             normalized_sharpe = min(fund_data['sharpe_ratio'] / 2.0, 1.0)  # Normalize to 0-1
             score += normalized_sharpe * self.weights.get('sharpe_ratio', 0.20) * 100
         
-        # Consistency (lower volatility is better)
-        if 'standard_deviation' in fund_data and fund_data['standard_deviation']:
-            # Inverse relationship - lower std dev = higher score
+        # Consistency (use dedicated consistency_score if available, else fall back to std dev)
+        if 'consistency_score' in fund_data and fund_data['consistency_score']:
+            # Use dedicated consistency score (0-100)
+            normalized_consistency = fund_data['consistency_score'] / 100
+            score += normalized_consistency * self.weights.get('consistency', 0.10) * 100
+        elif 'standard_deviation' in fund_data and fund_data['standard_deviation']:
+            # Fallback: Inverse relationship - lower std dev = higher score
             normalized_consistency = max(0, 1 - (fund_data['standard_deviation'] / 30))
             score += normalized_consistency * self.weights.get('consistency', 0.10) * 100
+        
+        # Benchmark outperformance (alpha)
+        if 'alpha' in fund_data and fund_data['alpha']:
+            # Positive alpha = outperformance, negative = underperformance
+            # Normalize: alpha of 5% = good, alpha of -5% = bad
+            normalized_alpha = min(1.0, max(0, (fund_data['alpha'] + 10) / 20))  # Scale -10% to +10%
+            score += normalized_alpha * self.weights.get('alpha', 0.05) * 100
         
         # Risk score (inverse - lower risk = higher score)
         if 'risk_score' in fund_data:
@@ -196,6 +207,10 @@ class FundRanker:
                         'standard_deviation': fund.get('standard_deviation', 0),
                         'max_drawdown': fund.get('max_drawdown', 0),
                         'risk_score': fund.get('risk_score', 0),
+                        # New metrics
+                        'consistency_score': fund.get('consistency_score', 0),
+                        'alpha': fund.get('alpha', 0),
+                        'benchmark_name': fund.get('benchmark_name', 'N/A'),
                         'method': method
                     }
                     all_recommendations.append(recommendation)
