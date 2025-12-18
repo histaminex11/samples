@@ -23,6 +23,9 @@ analysis:
   # Number of top funds to fetch per category
   top_funds_per_category: 100
   
+  # Number of top funds to recommend per category
+  top_recommendations_per_category: 5
+  
   # Performance periods to analyze (in years)
   performance_periods:
     - 1

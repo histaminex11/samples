@@ -79,9 +79,12 @@ def generate_recommendations(funds_data):
     output_dir = "data/processed"
     os.makedirs(output_dir, exist_ok=True)
     
+    # Get top N from config (default: 5)
+    top_n = ranker.config.get('analysis', {}).get('top_recommendations_per_category', 5)
+    
     # Method 1: Pure returns-based recommendations
-    print("\n--- Method 1: Returns-Based Recommendations ---")
-    returns_top_funds = ranker.select_top_funds(funds_data, top_n=3, method='returns')
+    print(f"\n--- Method 1: Returns-Based Recommendations (Top {top_n}) ---")
+    returns_top_funds = ranker.select_top_funds(funds_data, top_n=top_n, method='returns')
     returns_recommendations = ranker.generate_recommendations(returns_top_funds, method='returns')
     
     # Save returns-based recommendations
@@ -94,8 +97,8 @@ def generate_recommendations(funds_data):
     print(f"  - Excel: {returns_excel}")
     
     # Method 2: Comprehensive recommendations
-    print("\n--- Method 2: Comprehensive Recommendations (Returns + Risk) ---")
-    comprehensive_top_funds = ranker.select_top_funds(funds_data, top_n=3, method='comprehensive')
+    print(f"\n--- Method 2: Comprehensive Recommendations (Top {top_n} - Returns + Risk) ---")
+    comprehensive_top_funds = ranker.select_top_funds(funds_data, top_n=top_n, method='comprehensive')
     comprehensive_recommendations = ranker.generate_recommendations(comprehensive_top_funds, method='comprehensive')
     
     # Save comprehensive recommendations
