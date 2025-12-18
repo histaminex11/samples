@@ -1,6 +1,7 @@
 # Mutual Fund Analyzer Configuration
 
 # Fund Categories to analyze
+# Note: debt funds excluded (800+ funds, not currently needed)
 categories:
   - smallcap
   - midcap
@@ -8,7 +9,6 @@ categories:
   - index_funds
   - elss
   - hybrid
-  - debt
   - sectoral
 
 # Data Source
