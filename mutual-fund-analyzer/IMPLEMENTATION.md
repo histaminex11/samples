@@ -124,7 +124,7 @@ The `MFAPIFetcher` calculates:
 
 Potential improvements:
 - Add holdings data from other sources
-- Implement caching for frequently accessed data
+- ✅ Caching implemented (1-month freshness, automatic refresh)
 - Add more sophisticated risk metrics
 - Implement portfolio optimization algorithms
 - Add visualization and reporting features

@@ -164,7 +164,7 @@ Categorizing funds...
   ✓ debt: 2102 funds (excluded from processing by default)
   ✓ sectoral: 257 funds
 
-✓ Fetched funds for 8 categories
+✓ Fetched funds for 7 categories (debt excluded from processing)
 
 ============================================================
 STEP 4: Generating Recommendations
