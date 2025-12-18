@@ -7,10 +7,15 @@ import requests
 import pandas as pd
 import numpy as np
 import time
+import warnings
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import re
 from .cache_manager import CacheManager
+
+# Suppress pandas/numpy warnings for NaN operations (harmless, just noisy)
+warnings.filterwarnings('ignore', category=RuntimeWarning, module='pandas.core.nanops')
+warnings.filterwarnings('ignore', category=RuntimeWarning, module='numpy.core._methods')
 
 
 class MFAPIFetcher:
