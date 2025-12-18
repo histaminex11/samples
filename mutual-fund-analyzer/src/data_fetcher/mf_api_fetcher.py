@@ -10,6 +10,7 @@ import time
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import re
+from .cache_manager import CacheManager
 
 
 class MFAPIFetcher:
@@ -46,6 +47,8 @@ class MFAPIFetcher:
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
+        # Initialize cache manager
+        self.cache_manager = CacheManager()
     
     def _rate_limit_check(self):
         """Enforce rate limiting between requests."""
@@ -57,13 +60,25 @@ class MFAPIFetcher:
         
         self.last_request_time = time.time()
     
-    def fetch_all_funds(self) -> pd.DataFrame:
+    def fetch_all_funds(self, use_cache: bool = True) -> pd.DataFrame:
         """
         Fetch all mutual funds from the API.
+        Uses cache if available and fresh (less than 1 month old).
         
+        Args:
+            use_cache: Whether to use cached data if available
+            
         Returns:
             DataFrame with all funds
         """
+        # Try to load from cache first
+        if use_cache:
+            cached_funds = self.cache_manager.load_all_funds()
+            if cached_funds is not None:
+                print(f"✓ Loaded {len(cached_funds)} funds from cache")
+                return cached_funds
+        
+        # Fetch from API
         print("Fetching all mutual funds from API...")
         self._rate_limit_check()
         
@@ -79,6 +94,11 @@ class MFAPIFetcher:
             df = df[df['schemeCode'].notna()]
             
             print(f"✓ Fetched {len(df)} funds from API")
+            
+            # Save to cache
+            if use_cache:
+                self.cache_manager.save_all_funds(df)
+            
             return df
             
         except Exception as e:
@@ -147,17 +167,26 @@ class MFAPIFetcher:
         
         return categorized
     
-    def fetch_fund_history(self, scheme_code: int, days: int = 3650) -> Optional[pd.DataFrame]:
+    def fetch_fund_history(self, scheme_code: int, days: int = 3650, use_cache: bool = True) -> Optional[pd.DataFrame]:
         """
         Fetch historical NAV data for a fund.
+        Uses cache if available and fresh (less than 1 month old).
         
         Args:
             scheme_code: Scheme code of the fund
             days: Number of days of history to fetch (default 10 years)
+            use_cache: Whether to use cached data if available
             
         Returns:
             DataFrame with date and NAV, or None if error
         """
+        # Try to load from cache first
+        if use_cache:
+            cached_nav = self.cache_manager.load_nav_data(scheme_code)
+            if cached_nav is not None:
+                return cached_nav
+        
+        # Fetch from API
         self._rate_limit_check()
         
         try:
@@ -186,6 +215,10 @@ class MFAPIFetcher:
             if len(df) > 0:
                 cutoff_date = df['date'].max() - timedelta(days=days)
                 df = df[df['date'] >= cutoff_date]
+            
+            # Save to cache
+            if use_cache:
+                self.cache_manager.save_nav_data(scheme_code, df)
             
             return df
             

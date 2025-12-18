@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data_fetcher import FundFetcher
 from analyzer import PerformanceAnalyzer
 from ranking import FundRanker
+import yaml
 
 
 def fetch_data():
@@ -32,11 +33,17 @@ def fetch_data():
     return all_funds
 
 
-def analyze_performance(funds_data):
+def analyze_performance(funds_data, config=None):
     """Analyze mutual fund performance."""
     print("\n" + "=" * 60)
     print("STEP 2: Analyzing Fund Performance")
     print("=" * 60)
+    
+    # Load config if not provided
+    if config is None:
+        config_path = Path(__file__).parent.parent / "config" / "config.yaml"
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
     
     # Check which analyzers are enabled
     analyzer_flags = config.get('analysis', {}).get('analyzers', {})
@@ -171,7 +178,11 @@ def main():
         if not funds_data:
             print("No fund data available. Run with --fetch first.")
             return
-        funds_data = analyze_performance(funds_data)
+        # Load config
+        config_path = Path(__file__).parent.parent / "config" / "config.yaml"
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        funds_data = analyze_performance(funds_data, config=config)
         funds_data = analyze_holdings(funds_data)
     
     if args.all or args.recommend:

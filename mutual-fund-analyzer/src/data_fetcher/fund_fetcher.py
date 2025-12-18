@@ -106,7 +106,7 @@ class FundFetcher:
                     category_funds = categorized_funds[category].head(self.top_funds_count)
                     funds_df = self.api_fetcher.enrich_funds_with_performance(
                         category_funds, 
-                        max_funds=min(50, self.top_funds_count)  # Limit for speed
+                        max_funds=self.top_funds_count  # No limit - use config value
                     )
                     
                     # Sort by returns
