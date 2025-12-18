@@ -5,6 +5,7 @@ Fetches mutual fund data from api.mfapi.in API.
 
 import requests
 import pandas as pd
+import numpy as np
 import time
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
@@ -235,6 +236,67 @@ class MFAPIFetcher:
         
         return returns
     
+    def calculate_risk_metrics(self, nav_df: pd.DataFrame, risk_free_rate: float = 6.0) -> Dict[str, float]:
+        """
+        Calculate risk metrics from NAV data.
+        
+        Args:
+            nav_df: DataFrame with date and nav columns
+            risk_free_rate: Risk-free rate (default 6% for India)
+            
+        Returns:
+            Dictionary with risk metrics
+        """
+        if nav_df is None or len(nav_df) < 2:
+            return {
+                'sharpe_ratio': 0.0,
+                'standard_deviation': 0.0,
+                'max_drawdown': 0.0,
+                'risk_score': 0.0
+            }
+        
+        # Calculate monthly returns
+        nav_df = nav_df.sort_values('date')
+        nav_df['returns'] = nav_df['nav'].pct_change() * 100  # Percentage returns
+        
+        # Remove first row (NaN)
+        returns_series = nav_df['returns'].dropna()
+        
+        if len(returns_series) < 2:
+            return {
+                'sharpe_ratio': 0.0,
+                'standard_deviation': 0.0,
+                'max_drawdown': 0.0,
+                'risk_score': 0.0
+            }
+        
+        # Calculate standard deviation (annualized)
+        std_dev = returns_series.std() * np.sqrt(12)  # Annualized
+        
+        # Calculate Sharpe ratio
+        if std_dev > 0:
+            excess_returns = returns_series - (risk_free_rate / 12)
+            sharpe = (excess_returns.mean() / std_dev) * np.sqrt(12)  # Annualized
+        else:
+            sharpe = 0.0
+        
+        # Calculate maximum drawdown
+        nav_series = nav_df['nav']
+        peak = nav_series.expanding().max()
+        drawdown = (nav_series - peak) / peak * 100
+        max_drawdown = abs(drawdown.min())
+        
+        # Calculate risk score (0-100, higher = riskier)
+        # Based on standard deviation and max drawdown
+        risk_score = min(100, (std_dev * 2) + (max_drawdown * 0.5))
+        
+        return {
+            'sharpe_ratio': sharpe,
+            'standard_deviation': std_dev,
+            'max_drawdown': max_drawdown,
+            'risk_score': risk_score
+        }
+    
     def enrich_funds_with_performance(self, funds_df: pd.DataFrame, max_funds: int = 100) -> pd.DataFrame:
         """
         Enrich funds DataFrame with performance data.
@@ -263,6 +325,9 @@ class MFAPIFetcher:
             # Calculate returns
             returns = self.calculate_returns(nav_history)
             
+            # Calculate risk metrics
+            risk_metrics = self.calculate_risk_metrics(nav_history)
+            
             # Get current NAV
             current_nav = 0.0
             if nav_history is not None and len(nav_history) > 0:
@@ -278,6 +343,10 @@ class MFAPIFetcher:
                 'returns_3y': returns.get('returns_3y', 0.0),
                 'returns_5y': returns.get('returns_5y', 0.0),
                 'returns_10y': returns.get('returns_10y', 0.0),
+                'sharpe_ratio': risk_metrics.get('sharpe_ratio', 0.0),
+                'standard_deviation': risk_metrics.get('standard_deviation', 0.0),
+                'max_drawdown': risk_metrics.get('max_drawdown', 0.0),
+                'risk_score': risk_metrics.get('risk_score', 0.0),
                 'source': 'mfapi',
                 'isin_growth': fund.get('isinGrowth', ''),
             }

@@ -42,6 +42,8 @@ def analyze_performance(funds_data):
     # Performance metrics are already calculated during data fetching
     # Additional analysis can be added here if needed
     print("✓ Performance analysis completed")
+    print("  - Returns calculated (1Y, 3Y, 5Y, 10Y)")
+    print("  - Risk metrics calculated (Sharpe ratio, Std Dev, Max Drawdown, Risk Score)")
     
     return funds_data
 
@@ -64,25 +66,76 @@ def analyze_holdings(funds_data):
 
 
 def generate_recommendations(funds_data):
-    """Generate investment recommendations."""
+    """
+    Generate investment recommendations using two methods:
+    1. Pure returns-based ranking
+    2. Comprehensive ranking (returns + risk metrics)
+    """
     print("\n" + "=" * 60)
     print("STEP 4: Generating Recommendations")
     print("=" * 60)
     
     ranker = FundRanker()
-    top_funds = ranker.select_top_funds(funds_data, top_n=3)
-    recommendations = ranker.generate_recommendations(top_funds)
-    
-    # Save recommendations
     output_dir = "data/processed"
     os.makedirs(output_dir, exist_ok=True)
-    recommendations.to_csv(f"{output_dir}/recommendations.csv", index=False)
-    recommendations.to_excel(f"{output_dir}/recommendations.xlsx", index=False)
     
-    print(f"\n✓ Generated recommendations for {len(recommendations)} funds")
-    print(f"✓ Saved to {output_dir}/recommendations.csv")
+    # Method 1: Pure returns-based recommendations
+    print("\n--- Method 1: Returns-Based Recommendations ---")
+    returns_top_funds = ranker.select_top_funds(funds_data, top_n=3, method='returns')
+    returns_recommendations = ranker.generate_recommendations(returns_top_funds, method='returns')
     
-    return recommendations
+    # Save returns-based recommendations
+    returns_file = f"{output_dir}/recommendations_returns_based.csv"
+    returns_excel = f"{output_dir}/recommendations_returns_based.xlsx"
+    returns_recommendations.to_csv(returns_file, index=False)
+    returns_recommendations.to_excel(returns_excel, index=False)
+    print(f"✓ Saved {len(returns_recommendations)} returns-based recommendations")
+    print(f"  - CSV: {returns_file}")
+    print(f"  - Excel: {returns_excel}")
+    
+    # Method 2: Comprehensive recommendations
+    print("\n--- Method 2: Comprehensive Recommendations (Returns + Risk) ---")
+    comprehensive_top_funds = ranker.select_top_funds(funds_data, top_n=3, method='comprehensive')
+    comprehensive_recommendations = ranker.generate_recommendations(comprehensive_top_funds, method='comprehensive')
+    
+    # Save comprehensive recommendations
+    comprehensive_file = f"{output_dir}/recommendations_comprehensive.csv"
+    comprehensive_excel = f"{output_dir}/recommendations_comprehensive.xlsx"
+    comprehensive_recommendations.to_csv(comprehensive_file, index=False)
+    comprehensive_recommendations.to_excel(comprehensive_excel, index=False)
+    print(f"✓ Saved {len(comprehensive_recommendations)} comprehensive recommendations")
+    print(f"  - CSV: {comprehensive_file}")
+    print(f"  - Excel: {comprehensive_excel}")
+    
+    # Also save combined file for backward compatibility
+    combined_file = f"{output_dir}/recommendations.csv"
+    combined_excel = f"{output_dir}/recommendations.xlsx"
+    comprehensive_recommendations.to_csv(combined_file, index=False)
+    comprehensive_recommendations.to_excel(combined_excel, index=False)
+    
+    return {
+        'returns_based': returns_recommendations,
+        'comprehensive': comprehensive_recommendations
+    }
+
+
+def display_recommendations(recommendations):
+    """Display both sets of recommendations."""
+    print("\n" + "=" * 60)
+    print("RECOMMENDATIONS SUMMARY")
+    print("=" * 60)
+    
+    print("\n" + "-" * 60)
+    print("1. RETURNS-BASED RECOMMENDATIONS")
+    print("   (Ranked purely by historical returns)")
+    print("-" * 60)
+    print(recommendations['returns_based'].to_string())
+    
+    print("\n" + "-" * 60)
+    print("2. COMPREHENSIVE RECOMMENDATIONS")
+    print("   (Ranked by returns + risk metrics)")
+    print("-" * 60)
+    print(recommendations['comprehensive'].to_string())
 
 
 def main():
@@ -116,10 +169,7 @@ def main():
             print("No fund data available. Run with --fetch first.")
             return
         recommendations = generate_recommendations(funds_data)
-        print("\n" + "=" * 60)
-        print("TOP RECOMMENDATIONS")
-        print("=" * 60)
-        print(recommendations.to_string())
+        display_recommendations(recommendations)
 
 
 if __name__ == "__main__":

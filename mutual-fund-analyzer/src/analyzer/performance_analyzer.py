@@ -1,19 +1,43 @@
 """
 Performance Analyzer
 Analyzes mutual fund performance metrics.
+Extends BaseAnalyzer for modularity.
 """
 
 import pandas as pd
 import numpy as np
 from typing import Dict, List
+from .base_analyzer import BaseAnalyzer
 
 
-class PerformanceAnalyzer:
+class PerformanceAnalyzer(BaseAnalyzer):
     """Analyzes mutual fund performance metrics."""
     
-    def __init__(self):
+    def __init__(self, config: Dict = None):
         """Initialize the performance analyzer."""
-        pass
+        super().__init__(config)
+        self.risk_free_rate = self.config.get('risk_free_rate', 6.0)
+    
+    def get_required_columns(self) -> list:
+        """Get required columns for performance analysis."""
+        return ['nav', 'date']
+    
+    def analyze(self, fund_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Perform comprehensive performance analysis.
+        
+        Args:
+            fund_data: DataFrame with fund data
+            
+        Returns:
+            DataFrame with analysis results
+        """
+        if not self.validate_data(fund_data):
+            return pd.DataFrame()
+        
+        # Performance metrics are typically calculated during data fetching
+        # This method can be extended for additional analysis
+        return fund_data
     
     def calculate_returns(self, nav_data: pd.Series, periods: List[int] = [1, 3, 5, 10]) -> Dict[str, float]:
         """
@@ -38,17 +62,20 @@ class PerformanceAnalyzer:
         
         return returns
     
-    def calculate_sharpe_ratio(self, returns: pd.Series, risk_free_rate: float = 6.0) -> float:
+    def calculate_sharpe_ratio(self, returns: pd.Series, risk_free_rate: float = None) -> float:
         """
         Calculate Sharpe ratio.
         
         Args:
             returns: Series of returns
-            risk_free_rate: Risk-free rate (default 6% for India)
+            risk_free_rate: Risk-free rate (defaults to config value)
             
         Returns:
             Sharpe ratio
         """
+        if risk_free_rate is None:
+            risk_free_rate = self.risk_free_rate
+            
         if len(returns) == 0 or returns.std() == 0:
             return 0.0
         
@@ -56,7 +83,7 @@ class PerformanceAnalyzer:
         sharpe = (excess_returns.mean() / returns.std()) * np.sqrt(12)  # Annualized
         return sharpe
     
-    def calculate_sortino_ratio(self, returns: pd.Series, risk_free_rate: float = 6.0) -> float:
+    def calculate_sortino_ratio(self, returns: pd.Series, risk_free_rate: float = None) -> float:
         """
         Calculate Sortino ratio (downside risk only).
         
@@ -67,6 +94,9 @@ class PerformanceAnalyzer:
         Returns:
             Sortino ratio
         """
+        if risk_free_rate is None:
+            risk_free_rate = self.risk_free_rate
+            
         if len(returns) == 0:
             return 0.0
         
@@ -142,4 +172,3 @@ class PerformanceAnalyzer:
                 analysis[metric] = fund_data[metric]
         
         return analysis
-
